@@ -1,10 +1,14 @@
 import json
 import random
 import re
+from sys import argv
 
 
 def tokenize(line):
   return re.compile(r'\w+').findall(line.lower())
+
+def clean(qjson):
+  return qjson
 
 
 def always(label, *args):
@@ -62,6 +66,18 @@ def testAll(answer_func, rawjson, print_false = False):
   total = 0
   for exjson in rawjson['exercises']:
     for qjson in exjson['questions']:
+      labels = [ansjson['label']  for ansjson in qjson['answerChoices']]
+      labelsABCD = [tp in u'ABCD' for tp in labels]
+      if not all(labelsABCD):
+        #choices is part of A B C D
+        continue
+      if qjson['correctAnswer'] not in labels:
+        #correct answer in labels
+        continue
+      ansTexts = [ansjson['text']  for ansjson in qjson['answerChoices']]
+      if len(set(ansTexts)) != len(ansTexts):
+        #no duplicated answer
+        continue
       total += 1
       if callable(answer_func):
         compans = answer_func(exjson['story'], qjson)
@@ -86,17 +102,20 @@ def labelSet(rawjson):
 
 if __name__ == "__main__":
   for gg in ['k','1','2','3', '4']:
-    print "\n ------- grade " + gg + " -------\n"
+    if len(argv) > 1:
+      if gg not in argv:
+        continue
+    print "\n------- grade " + gg + " -------\n"
     with open('readworks_grade' + gg + '.0.1.json', 'r') as op:
       lines = op.read()
     jlines = json.loads(lines)
     for lb in labelSet(jlines):
-      print "always " + lb
+      print "always choose: " + lb
       print testAll(always(lb), jlines)
     print "randomChoice"
     print testAll(randomChoice, jlines)
     print "mostFreq"
     print testAll(mostFreq, jlines)
     print "BOW"
-    print testAll(bowMatch, jlines)
+    print testAll(bowMatch, jlines)#, True)
 
