@@ -2,13 +2,13 @@ import json
 import random
 import re
 from sys import argv
+from nltk.stem import WordNetLemmatizer
 
+lemmatizer = WordNetLemmatizer()
 
 def tokenize(line):
   return re.compile(r'\w+').findall(line.lower())
 
-def clean(qjson):
-  return qjson
 
 
 def always(label, *args):
@@ -47,6 +47,9 @@ def bowMatch(stjson, qjson):
   lineA = qjson['text'] + ' ' + qjson['answerChoices'][0]['text']
   lineB = qjson['text'] + ' ' + qjson['answerChoices'][1]['text']
   tlA = tokenize(lineA)
+  #print tlA
+  #print [lemmatizer.lemmatize(tmp) for tmp in tlA]
+  #exit(1)
   tlB = tokenize(lineB)
   Amatch = []
   Bmatch = []
@@ -87,7 +90,7 @@ def testAll(answer_func, rawjson, print_false = False):
         correct += 1
       else:
         if print_false:
-          print exjson['story']['text']
+          #print exjson['story']['text']
           print qjson['text']
           print [tt['text'] for tt in qjson['answerChoices']]
   return correct / float(total)
@@ -117,5 +120,5 @@ if __name__ == "__main__":
     print "mostFreq"
     print testAll(mostFreq, jlines)
     print "BOW"
-    print testAll(bowMatch, jlines)#, True)
+    print testAll(bowMatch, jlines, True)
 
