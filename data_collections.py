@@ -93,7 +93,7 @@ def testAll(answer_func, rawjson, print_false = False):
           #print exjson['story']['text']
           print qjson['text']
           print [tt['text'] for tt in qjson['answerChoices']]
-  return correct / float(total)
+  return correct, total, correct / float(total)
 
 def labelSet(rawjson):
   options = set()
@@ -120,5 +120,5 @@ if __name__ == "__main__":
     print "mostFreq"
     print testAll(mostFreq, jlines)
     print "BOW"
-    print testAll(bowMatch, jlines, True)
+    print testAll(bowMatch, jlines)
 
