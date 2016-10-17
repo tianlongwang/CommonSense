@@ -1,7 +1,7 @@
 """Semantic Tensor QA, use Glove as initialization for word embedding layer"""
 
 import json
-with open('readworks_grade1.0.1.json', 'r') as op:
+with open('data/readworks/readworks_grade1.0.1.json', 'r') as op:
   lines = op.read()
 jlines = json.loads(lines)
 #----------------
@@ -199,7 +199,7 @@ model.compile(optimizer='adam',
 
 
 print('Training')
-model.fit([Xs, Xq, XaA, XaB, XaC], Y, batch_size=BATCH_SIZE, nb_epoch=EPOCHS, validation_split=0.1)
+model.fit([Xs, Xq, XaA, XaB, XaC], Y, batch_size=BATCH_SIZE, nb_epoch=EPOCHS, validation_split=0.2)
 
 
 loss, acc = model.evaluate([Xs, Xq, XaA, XaB, XaC], Y, batch_size=BATCH_SIZE)
