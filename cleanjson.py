@@ -1,5 +1,5 @@
 import json
-with open('data/readworksTrainTest/readworks_grade2.dev.0.1.json', 'r') as op:
+with open('data/readworksTrainTest2/readworks_grade2.test.0.1.json', 'r') as op:
   lines = op.read()
   jlines = json.loads(lines)
 
@@ -16,6 +16,6 @@ for exjson in jlines['exercises']:
       qjsons.append(qjson)
   exjson['questions'] = qjsons
 
-with open('data/readworksTrainTest/readworks_grade2.dev.0.1.json', 'w') as fw:
+with open('data/readworksTrainTest2/readworks_grade2.test.0.1.json', 'w') as fw:
   fw.write(json.dumps(jlines))
 

@@ -105,12 +105,13 @@ def labelSet(rawjson):
 
 if __name__ == "__main__":
   #for gg in ['k','1','2','3', '4']:
-  for gg in ['1','1.dev','2','2.dev']:
+  for gg in ['1.test','1.dev','2.test','2.dev']:
     if len(argv) > 1:
       if gg not in argv:
         continue
     print "\n------- grade " + gg + " -------\n"
-    with open('data/readworksTrainTest/readworks_grade' + gg + '.0.1.json', 'r') as op:
+    with open('data/readworksTrainTest2/readworks_grade' + gg + '.0.1.json', 'r') as op:
+    #with open('data/readworks/readworks_grade' + gg + '.0.1.json', 'r') as op:
       lines = op.read()
     jlines = json.loads(lines)
     for lb in labelSet(jlines):
