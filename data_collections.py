@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import re
 from sys import argv
@@ -105,15 +106,24 @@ def labelSet(rawjson):
 
 if __name__ == "__main__":
   #for gg in ['k','1','2','3', '4']:
-  for gg in ['1.test','1.dev','2.test','2.dev']:
-    if len(argv) > 1:
-      if gg not in argv:
-        continue
-    print "\n------- grade " + gg + " -------\n"
-    with open('data/readworksTrainTest2/readworks_grade' + gg + '.0.1.json', 'r') as op:
-    #with open('data/readworks/readworks_grade' + gg + '.0.1.json', 'r') as op:
+  #for gg in ['1.test','1.dev','2.test','2.dev']:
+    #if len(argv) > 1:
+    #  if gg not in argv:
+    #    continue
+    #print "\n------- grade " + gg + " -------\n"
+  if len(argv) < 2:
+    data_dir = './data/readworksTrainTest2'
+  else:
+    data_dir = argv[1]
+  for fn in os.listdir(data_dir):
+    fns = fn.split('.')
+    if fns[len(fns)-1] != 'json':
+      continue
+    path_fn = os.path.join(data_dir, fn)
+    with open(path_fn, 'r') as op:
       lines = op.read()
     jlines = json.loads(lines)
+    print('\n-------'+fn+'-------')
     for lb in labelSet(jlines):
       print "always choose: " + lb
       print testAll(always(lb), jlines)
