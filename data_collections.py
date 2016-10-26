@@ -90,12 +90,27 @@ def testAll(answer_func, rawjson, print_false = False):
       if compans == qjson['correctAnswer']:
         correct += 1
       else:
-        if print_false:
-          #print exjson['story']['text']
-          #print qjson['text']
-          #print [tt['text'] for tt in qjson['answerChoices']]
-          print exjson['story']['id']
+        if print_false and not_in_context(exjson, qjson):
+          print '-------------------------------'
+          #print 'in_context', in_context
+          print 'STORY ID: ', exjson['story']['id']
+          print 'STORY: ', exjson['story']['text']
+          print 'QUESTION: ', qjson['text']
+          print 'ANSWER: ',  [[tt['label'], tt['text']] for tt in qjson['answerChoices']]
+          print 'Computed answer: ', compans
+          print 'Correct answer: ', qjson['correctAnswer']
   return correct, total, correct / float(total)
+
+
+
+def not_in_context(exjson, qjson):
+  not_in = False
+  for ansjson in qjson['answerChoices']:
+    if ansjson['label'] != qjson['correctAnswer']:
+      continue
+    if ansjson['text'].rstrip('the').lstrip('the') not in exjson['story']['text']:
+      not_in = True
+  return not_in
 
 def labelSet(rawjson):
   options = set()
@@ -113,12 +128,15 @@ if __name__ == "__main__":
     #    continue
     #print "\n------- grade " + gg + " -------\n"
   if len(argv) < 2:
-    data_dir = './data/readworksTrainTest2'
+    #data_dir = './data/readworksTrainTest2'
+    data_dir = './data/readworks'
   else:
     data_dir = argv[1]
   for fn in os.listdir(data_dir):
     fns = fn.split('.')
-    if fns[len(fns)-1] != 'json':
+    if fns[-1] != 'json':
+      continue
+    if 'grade1' not in fn:
       continue
     path_fn = os.path.join(data_dir, fn)
     with open(path_fn, 'r') as op:
