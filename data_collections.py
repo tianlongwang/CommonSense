@@ -4,13 +4,15 @@ import random
 import re
 from sys import argv
 from nltk.stem import WordNetLemmatizer
+from nltk import word_tokenize
 
 lemmatizer = WordNetLemmatizer()
 
+
+from nltk import pos_tag
+
 def tokenize(line):
-  return re.compile(r'\w+').findall(line.lower())
-
-
+  return [lemmatizer.lemmatize(tmp) for tmp in word_tokenize(line.lower())]
 
 def always(label, *args):
   return label
@@ -54,6 +56,7 @@ def bowMatch(stjson, qjson):
   tlB = tokenize(lineB)
   Amatch = []
   Bmatch = []
+  #TODO: got sum 3
   for sline in stjson['text'].split('.!?'):
     Amatch.append(tokensMatch(tlA, tokenize(sline)))
     Bmatch.append(tokensMatch(tlB, tokenize(sline)))
@@ -68,6 +71,7 @@ def bowMatch(stjson, qjson):
 def testAll(answer_func, rawjson, print_false = False):
   correct = 0
   total = 0
+  nic_count = 0
   for exjson in rawjson['exercises']:
     for qjson in exjson['questions']:
       labels = [ansjson['label']  for ansjson in qjson['answerChoices']]
@@ -90,7 +94,9 @@ def testAll(answer_func, rawjson, print_false = False):
       if compans == qjson['correctAnswer']:
         correct += 1
       else:
-        if print_false and not_in_context(exjson, qjson):
+        nic, aw = not_in_context(exjson, qjson)
+        if print_false and nic:
+          nic_count += 1
           print '-------------------------------'
           #print 'in_context', in_context
           print 'STORY ID: ', exjson['story']['id']
@@ -99,18 +105,39 @@ def testAll(answer_func, rawjson, print_false = False):
           print 'ANSWER: ',  [[tt['label'], tt['text']] for tt in qjson['answerChoices']]
           print 'Computed answer: ', compans
           print 'Correct answer: ', qjson['correctAnswer']
-  return correct, total, correct / float(total)
+          print 'Alian words: ', aw
+  return correct, total, correct / float(total), nic_count
 
 
 
 def not_in_context(exjson, qjson):
   not_in = False
+  ret = []
+  wrong_answers = []
+  for ansjson in qjson['answerChoices']:
+    if ansjson['label'] != qjson['correctAnswer']:
+      wrong_answers.append(ansjson['text'])
   for ansjson in qjson['answerChoices']:
     if ansjson['label'] != qjson['correctAnswer']:
       continue
-    if ansjson['text'].rstrip('the').lstrip('the') not in exjson['story']['text']:
-      not_in = True
-  return not_in
+    for word in tokenize(ansjson['text']):
+        #pt = pos_tag([word])
+        #if pt[0][1][0] not in ['N','V','J']:
+        #    continue
+        #print 'word', word
+        #print 'wrong_answers', wrong_answers
+        in_all_wrong = True
+        for wa in wrong_answers:
+            if word not in tokenize(wa):
+                in_all_wrong = False
+        story_token_in_ans = False
+        for story_token in tokenize(exjson['story']['text']):
+            if story_token in word:
+                story_token_in_ans = True
+        if word not in exjson['story']['text'].lower() and word not in tokenize(exjson['story']['text']) and not in_all_wrong and not story_token_in_ans:
+            not_in = True
+            ret.append(word)
+  return not_in, ret
 
 def labelSet(rawjson):
   options = set()
@@ -136,20 +163,20 @@ if __name__ == "__main__":
     fns = fn.split('.')
     if fns[-1] != 'json':
       continue
-    if 'grade1' not in fn:
+    if 'gradek' not in fn:
       continue
     path_fn = os.path.join(data_dir, fn)
     with open(path_fn, 'r') as op:
       lines = op.read()
     jlines = json.loads(lines)
     print('\n-------'+fn+'-------')
-    for lb in labelSet(jlines):
-      print "always choose: " + lb
-      print testAll(always(lb), jlines)
-    print "randomChoice"
-    print testAll(randomChoice, jlines)
-    print "mostFreq"
-    print testAll(mostFreq, jlines)
+   # for lb in labelSet(jlines):
+   #   print "always choose: " + lb
+   #   print testAll(always(lb), jlines)
+   # print "randomChoice"
+   # print testAll(randomChoice, jlines)
+   # print "mostFreq"
+   # print testAll(mostFreq, jlines)
     print "BOW"
     print testAll(bowMatch, jlines, True)
 
