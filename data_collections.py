@@ -47,6 +47,7 @@ def bowMatch(stjson, qjson):
     s1 = set(tokenlist1)
     s2 = set(tokenlist2)
     return float(len(s1.intersection(s2))) / len(s1.union(s2))
+  mcdict = dict(zip('01234','ABCDE'))
   lineA = qjson['text'] + ' ' + qjson['answerChoices'][0]['text']
   lineB = qjson['text'] + ' ' + qjson['answerChoices'][1]['text']
   tlA = tokenize(lineA)
