@@ -5,8 +5,11 @@ import re
 from sys import argv
 from nltk.stem import WordNetLemmatizer
 from nltk import word_tokenize
-
+from nltk import sent_tokenize
+import numpy as np
+from ipdb import set_trace
 lemmatizer = WordNetLemmatizer()
+import difflib
 
 
 from nltk import pos_tag
@@ -43,11 +46,32 @@ def mostFreq(stjson, qjson):
 
 def bowMatch(stjson, qjson):
   def tokensMatch(tokenlist1, tokenlist2):
-  #TODO ignoring duplicated tokens, could improve with vector bow
+    #return difflib.SequenceMatcher(None, tokenlist1, tokenlist2).ratio() # list similarity, not as good as set similarity
     s1 = set(tokenlist1)
     s2 = set(tokenlist2)
-    return float(len(s1.intersection(s2))) / len(s1.union(s2))
-  mcdict = dict(zip('01234','ABCDE'))
+    return float(len(s1.intersection(s2))) / len(s1.union(s2)) # set similarity
+  labels = list('ABCDE')
+  #set_trace()
+  ansDict = dict([(ansjson['label'], ansjson['text']) for ansjson in qjson['answerChoices']])
+  qaLine = []
+  for lb in labels:
+    if lb in ansDict:
+        qaLine.append(qjson['text'] + ' ' + ansDict[lb])
+    else:
+        break
+  #print len(qaLine)
+  tLine = [tokenize(tmp) for tmp in qaLine]
+  mcMatch = []
+  for tl in tLine:
+    tm = []
+    for sline in sent_tokenize(stjson['text']):
+        tm.append(tokensMatch(tl, tokenize(sline)))
+    mcMatch.append(max(tm))
+  ret = labels[np.argmax(mcMatch)]
+  return ret
+'''
+
+
   lineA = qjson['text'] + ' ' + qjson['answerChoices'][0]['text']
   lineB = qjson['text'] + ' ' + qjson['answerChoices'][1]['text']
   tlA = tokenize(lineA)
@@ -57,7 +81,7 @@ def bowMatch(stjson, qjson):
   tlB = tokenize(lineB)
   Amatch = []
   Bmatch = []
-  #TODO: got sum 3
+  #TODO: sum 3 decrease dramatically.
   for sline in stjson['text'].split('.!?'):
     Amatch.append(tokensMatch(tlA, tokenize(sline)))
     Bmatch.append(tokensMatch(tlB, tokenize(sline)))
@@ -68,7 +92,7 @@ def bowMatch(stjson, qjson):
   if Bmax > Amax:
     return "B"
   return randomChoice(stjson, qjson)
-
+'''
 def testAll(answer_func, rawjson, print_false = False):
   correct = 0
   total = 0
@@ -164,8 +188,8 @@ if __name__ == "__main__":
     fns = fn.split('.')
     if fns[-1] != 'json':
       continue
-    if 'gradek' not in fn:
-      continue
+    #if 'gradek' not in fn:
+    #  continue
     path_fn = os.path.join(data_dir, fn)
     with open(path_fn, 'r') as op:
       lines = op.read()
@@ -179,5 +203,5 @@ if __name__ == "__main__":
    # print "mostFreq"
    # print testAll(mostFreq, jlines)
     print "BOW"
-    print testAll(bowMatch, jlines, True)
+    print testAll(bowMatch, jlines)#, True)
 
