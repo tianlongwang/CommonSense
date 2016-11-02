@@ -181,7 +181,7 @@ if __name__ == "__main__":
     #print "\n------- grade " + gg + " -------\n"
   if len(argv) < 2:
     #data_dir = './data/readworksTrainTest2'
-    data_dir = './data/readworks'
+    data_dir = './data/readworksTrainTest2'
   else:
     data_dir = argv[1]
   for fn in os.listdir(data_dir):
