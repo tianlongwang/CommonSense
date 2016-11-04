@@ -13,6 +13,17 @@ import difflib
 
 
 from nltk import pos_tag
+from nltk import sent_tokenize
+
+def my_sent_tokenize(txt):
+    tmp = sent_tokenize(txt)
+    ret = []
+    for t1 in tmp:
+      if t1[0].islower():
+        ret[len(ret)-1] = ret[len(ret)-1] + ' ' + t1
+      else:
+        ret.append(t1)
+    return ret
 
 def tokenize(line):
   return [lemmatizer.lemmatize(tmp) for tmp in word_tokenize(line.lower())]
@@ -97,9 +108,11 @@ def testAll(answer_func, rawjson, print_false = False):
   correct = 0
   total = 0
   nic_count = 0
+  fw = open('demo-stories.js', 'w')
+  fw.write("""define([], function() {
+
+      return [""")
   for exjson in rawjson['exercises']:
-    if len(exjson['story']['text'].split('.')) > 5:
-        continue
     for qjson in exjson['questions']:
       labels = [ansjson['label']  for ansjson in qjson['answerChoices']]
       labelsABCD = [tp in u'ABCD' for tp in labels]
@@ -125,16 +138,35 @@ def testAll(answer_func, rawjson, print_false = False):
         if print_false:# and nic:
           nic_count += 1
           print '-------------------------------'
+          fw.write('{')
           #print 'in_context', in_context
           print 'STORY ID: ', exjson['story']['id']
-          print 'STORY: ', exjson['story']['text']#.replace('.','.\\n').replace('?','?\\n').replace('!','!\\n')
+          print 'STORY: ', exjson['story']['text']
+          fw.write('"s":"')
+          fw.write('\\n'.join(my_sent_tokenize(exjson['story']['text'])).replace('"','\\"').replace("'","\\'"))
+          fw.write('",')
+          fw.write('\n')
           print 'QUESTION: ', qjson['text']
-          print 'ANSWER: ',  [[tt['label'], tt['text']] for tt in qjson['answerChoices']]
-          #print 'ANSWER: ',  ' | '.join([tt['text'] for tt in qjson['answerChoices']])
+          fw.write('"q":"')
+          fw.write(qjson['text'].replace('"','\\"').replace("'","\\'"))
+          fw.write('",')
+          fw.write('\n')
+          #print 'ANSWER: ',  [[tt['label'], tt['text']] for tt in qjson['answerChoices']]
+          print 'ANSWER: ',  ' | '.join([tt['text'] for tt in qjson['answerChoices']])
+          fw.write('"c":"')
+          fw.write( ' | '.join([tt['text'] for tt in qjson['answerChoices']]).replace('"','\\"').replace("'","\\'"))
+          fw.write('",')
+          fw.write('\n')
           print 'Computed answer: ', compans
           print 'Correct answer: ', qjson['correctAnswer']
+          fw.write('"a":"')
+          fw.write( qjson['correctAnswer'])
+          fw.write('"},')
+          fw.write('\n')
           print 'Alian words: ', aw
-          print_false = False
+  fw.write("""];
+  });""")
+  fw.close()
   return correct, total, correct / float(total), nic_count
 
 
